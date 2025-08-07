@@ -12,6 +12,7 @@ import {
   verificationTokens,
 } from "@/server/db/schema";
 
+export type UserRole = "super admin" | "admin" | "basic";
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -22,15 +23,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role?: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role?: UserRole;
+  }
 }
 
 /**
@@ -65,6 +64,7 @@ export const authConfig = {
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
       },
     }),
     redirect: async ({ url, baseUrl }) => {

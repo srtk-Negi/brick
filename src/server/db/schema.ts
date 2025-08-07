@@ -1,37 +1,46 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { env } from "@/env";
+import { pgEnum } from "drizzle-orm/pg-core";
+
+// ------------------ ENUMS ------------------
+/**
+ * user's role on the application level. For the SaaS dev team.
+ */
+export const appUserRoles = pgEnum("app_user_roles", [
+  "super_admin",
+  "admin",
+  "basic",
+]);
 
 /**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
+ * user's role in a tenant/workspace/org.
  */
-export const createTable = pgTableCreator((name) => `csb_${name}`);
+export const tenantUserRoles = pgEnum("tenant_user_roles", [
+  "admin",
+  "editor",
+  "viewer",
+]);
+export const plans = pgEnum("plans", ["free", "pro", "enterprize"]);
+export const planStatus = pgEnum("plan_status", [
+  "active",
+  "canceled",
+  "trial",
+  "past_due",
+]);
 
-export const posts = createTable(
-  "post",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdById: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [
-    index("created_by_idx").on(t.createdById),
-    index("name_idx").on(t.name),
-  ]
+export type AppUserRole = "super_admin" | "admin" | "basic";
+export type TenantUserRole = "admin" | "editor" | "viewer";
+export type Plan = "free" | "pro" | "enterprise";
+export type PlanStatus = "active" | "canceled" | "trial" | "past_due";
+
+export const createTableFunction = pgTableCreator(
+  (name) => `${env.APP_NAME}_${name}`,
 );
 
-export const users = createTable("user", (d) => ({
+// ------------------ USERS ------------------
+export const usersTable = createTableFunction("user", (d) => ({
   id: d
     .varchar({ length: 255 })
     .notNull()
@@ -46,19 +55,17 @@ export const users = createTable("user", (d) => ({
     })
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
+  role: appUserRoles().notNull().default("basic"),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-}));
-
-export const accounts = createTable(
+// ------------------ AUTH ------------------
+export const accountsTable = createTableFunction(
   "account",
   (d) => ({
     userId: d
       .varchar({ length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => usersTable.id),
     type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
     provider: d.varchar({ length: 255 }).notNull(),
     providerAccountId: d.varchar({ length: 255 }).notNull(),
@@ -70,39 +77,179 @@ export const accounts = createTable(
     id_token: d.text(),
     session_state: d.varchar({ length: 255 }),
   }),
-  (t) => [
-    primaryKey({ columns: [t.provider, t.providerAccountId] }),
-    index("account_user_id_idx").on(t.userId),
-  ]
+  (table) => [
+    primaryKey({ columns: [table.provider, table.providerAccountId] }),
+    index("account_user_id_idx").on(table.userId),
+  ],
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}));
-
-export const sessions = createTable(
+export const sessionsTable = createTableFunction(
   "session",
   (d) => ({
     sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
     userId: d
       .varchar({ length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => usersTable.id),
     expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
   }),
-  (t) => [index("t_user_id_idx").on(t.userId)]
+  (table) => [index("t_user_id_idx").on(table.userId)],
 );
 
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
-}));
-
-export const verificationTokens = createTable(
+export const verificationTokensTable = createTableFunction(
   "verification_token",
   (d) => ({
     identifier: d.varchar({ length: 255 }).notNull(),
     token: d.varchar({ length: 255 }).notNull(),
     expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
   }),
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })]
+  (table) => [primaryKey({ columns: [table.identifier, table.token] })],
 );
+
+// ------------------ RBAC ------------------
+export const rolesTable = createTableFunction("roles", (d) => ({
+  id: d.text().primaryKey(),
+  name: d.text().notNull(),
+  description: d.text(),
+}));
+
+export const permissionsTable = createTableFunction("permissions", (d) => ({
+  id: d.text().primaryKey(),
+  description: d.text(),
+}));
+
+export const rolePermissionsTable = createTableFunction(
+  "role_permissions",
+  (d) => ({
+    roleId: d.text().references(() => rolesTable.id),
+    permissionId: d.text().references(() => permissionsTable.id),
+  }),
+  (table) => [primaryKey({ columns: [table.roleId, table.permissionId] })],
+);
+
+// ------------------ TENANTS ------------------
+export const tenantsTable = createTableFunction("tenants", (d) => ({
+  id: d.uuid().primaryKey().defaultRandom(),
+  name: d.varchar({ length: 255 }).notNull(),
+  slug: d.varchar({ length: 255 }).unique(),
+  plan: plans().notNull().default("free"),
+  createdAt: d
+    .timestamp({ mode: "date", withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}));
+
+export const membershipsTable = createTableFunction(
+  "membership",
+  (d) => ({
+    userId: d
+      .varchar({ length: 255 })
+      .notNull()
+      .references(() => usersTable.id),
+    tenantId: d
+      .uuid()
+      .notNull()
+      .references(() => tenantsTable.id),
+    role: tenantUserRoles().notNull().default("viewer"),
+    invitedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+    acceptedAt: d.timestamp({ mode: "date", withTimezone: true }),
+  }),
+  (table) => [primaryKey({ columns: [table.userId, table.tenantId] })],
+);
+
+export const invitationsTable = createTableFunction("invitations", (d) => ({
+  id: d.uuid().primaryKey().defaultRandom(),
+  email: d.text().notNull(),
+  tenantId: d.uuid().references(() => tenantsTable.id),
+  role: tenantUserRoles().notNull().default("viewer"),
+  token: d.text().notNull().unique(),
+  createdAt: d.timestamp().defaultNow(),
+  acceptedAt: d.timestamp(),
+}));
+
+export const subscriptionsTable = createTableFunction("subscriptions", (d) => ({
+  id: d.text().primaryKey(), // Stripe subscription ID
+  tenantId: d.uuid().references(() => tenantsTable.id),
+  customerId: d.text().notNull(), // Stripe customer ID
+  priceId: d.text().notNull(),
+  status: planStatus().default("trial"),
+  currentPeriodEnd: d.timestamp(),
+  createdAt: d.timestamp().defaultNow(),
+}));
+
+// ------------------ AUDIT ------------------
+export const auditLogsTable = createTableFunction("audit_logs", (d) => ({
+  id: d.uuid().primaryKey().defaultRandom(),
+  tenantId: d.uuid().references(() => tenantsTable.id),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => usersTable.id),
+  action: d.text().notNull(), // e.g., "USER_INVITED"
+  metadata: d.text(), // Optional JSON string
+  createdAt: d.timestamp().defaultNow(),
+}));
+
+// ------------------ RELATIONS ------------------
+export const usersRelations = relations(usersTable, ({ many }) => ({
+  accounts: many(accountsTable),
+}));
+
+export const accountsRelations = relations(accountsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [accountsTable.userId],
+    references: [usersTable.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [sessionsTable.userId],
+    references: [usersTable.id],
+  }),
+}));
+
+export const tenantsRelations = relations(tenantsTable, ({ many }) => ({
+  memberships: many(membershipsTable),
+  subscriptions: many(subscriptionsTable),
+  auditLogs: many(auditLogsTable),
+  invitations: many(invitationsTable),
+}));
+
+export const membershipsRelations = relations(membershipsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [membershipsTable.userId],
+    references: [usersTable.id],
+  }),
+  tenant: one(tenantsTable, {
+    fields: [membershipsTable.tenantId],
+    references: [tenantsTable.id],
+  }),
+}));
+export const subscriptionsRelations = relations(
+  subscriptionsTable,
+  ({ one }) => ({
+    tenant: one(tenantsTable, {
+      fields: [subscriptionsTable.tenantId],
+      references: [tenantsTable.id],
+    }),
+  }),
+);
+
+export const invitationsRelations = relations(invitationsTable, ({ one }) => ({
+  tenant: one(tenantsTable, {
+    fields: [invitationsTable.tenantId],
+    references: [tenantsTable.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogsTable, ({ one }) => ({
+  tenant: one(tenantsTable, {
+    fields: [auditLogsTable.tenantId],
+    references: [tenantsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [auditLogsTable.userId],
+    references: [usersTable.id],
+  }),
+}));

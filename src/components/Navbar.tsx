@@ -18,20 +18,16 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  const navItems = [{ name: "Home", href: "/" }];
+  const navItems = [
+    { name: "Home", href: "/" },
+    { name: "Users", href: "/users" },
+  ];
 
   const SignInOutBtn = () => {
     return (
