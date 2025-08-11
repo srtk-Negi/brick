@@ -6,10 +6,10 @@ import GitHubProvider from "next-auth/providers/github";
 
 import { db } from "@/server/db";
 import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
+  accountsTable,
+  sessionsTable,
+  usersTable,
+  verificationTokensTable,
 } from "@/server/db/schema";
 
 export type UserRole = "super admin" | "admin" | "basic";
@@ -53,10 +53,10 @@ export const authConfig = {
     }),
   ],
   adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
+    usersTable: usersTable,
+    accountsTable: accountsTable,
+    sessionsTable: sessionsTable,
+    verificationTokensTable: verificationTokensTable,
   }),
   callbacks: {
     session: ({ session, user }) => ({
