@@ -4,40 +4,34 @@ import { type AdapterAccount } from "next-auth/adapters";
 import { env } from "@/env";
 import { pgEnum } from "drizzle-orm/pg-core";
 
-// ------------------ ENUMS ------------------
+export const createTableFunction = pgTableCreator(
+  (name) => `${env.APP_NAME}_${name}`,
+);
+
+// ------------------ CONSTS ------------------
+export const APP_USER_ROLES = ["super_admin", "admin", "basic"] as const;
+export const TENANT_USER_ROLES = ["admin", "editor", "viewer"] as const;
+export const PLANS = ["free", "pro", "enterprise"] as const;
+export const PLAN_STATUS = ["active", "canceled", "trial", "past_due"] as const;
+
+// ------------------ TYPES ------------------
+export type AppUserRoles = (typeof APP_USER_ROLES)[number];
+export type TenantUserRoles = (typeof TENANT_USER_ROLES)[number];
+export type Plan = (typeof PLANS)[number];
+export type PlanStatus = (typeof PLAN_STATUS)[number];
+
+// ------------------ POSTGRES ENUMS ------------------
 /**
  * user's role on the application level. For the SaaS dev team.
  */
-export const appUserRoles = pgEnum("app_user_roles", [
-  "super_admin",
-  "admin",
-  "basic",
-]);
+export const appUserRoles = pgEnum("app_user_roles", APP_USER_ROLES);
 
 /**
  * user's role in a tenant/workspace/org.
  */
-export const tenantUserRoles = pgEnum("tenant_user_roles", [
-  "admin",
-  "editor",
-  "viewer",
-]);
-export const plans = pgEnum("plans", ["free", "pro", "enterprize"]);
-export const planStatus = pgEnum("plan_status", [
-  "active",
-  "canceled",
-  "trial",
-  "past_due",
-]);
-
-export type AppUserRole = "super_admin" | "admin" | "basic";
-export type TenantUserRole = "admin" | "editor" | "viewer";
-export type Plan = "free" | "pro" | "enterprise";
-export type PlanStatus = "active" | "canceled" | "trial" | "past_due";
-
-export const createTableFunction = pgTableCreator(
-  (name) => `${env.APP_NAME}_${name}`,
-);
+export const tenantUserRoles = pgEnum("tenant_user_roles", TENANT_USER_ROLES);
+export const plans = pgEnum("plans", PLANS);
+export const planStatus = pgEnum("plan_status", PLAN_STATUS);
 
 // ------------------ USERS ------------------
 export const usersTable = createTableFunction("user", (d) => ({
