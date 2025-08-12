@@ -17,7 +17,7 @@ export async function createTenant(tenant: Tenant) {
   return response[0];
 }
 
-export async function getTenantsBySlug(slug: string) {
+export async function getTenantBySlug(slug: string) {
   const tenant = await db
     .select()
     .from(tenantsTable)

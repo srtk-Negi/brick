@@ -20,6 +20,7 @@ export default function SignOutPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button
+            variant={"destructive"}
             className="w-full"
             onClick={() => signOut({ redirectTo: "/" })}
           >

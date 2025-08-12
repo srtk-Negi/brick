@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { DiscIcon as Discord, Github, Chrome } from "lucide-react";
 
 export default function LoginPage() {
-  const performSignIn = (provider: string) => {
-    signIn(provider, { callbackUrl: "/dashboard" });
+  const performSignIn = async (provider: string) => {
+    await signIn(provider, { callbackUrl: "/dashboard" });
   };
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
