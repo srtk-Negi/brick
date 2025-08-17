@@ -3,6 +3,7 @@ import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
+import { getMembershipsByUserId } from "@/lib/queries/memberships";
 
 import { db } from "@/server/db";
 import {
@@ -59,6 +60,15 @@ export const authConfig = {
     verificationTokensTable: verificationTokensTable,
   }),
   callbacks: {
+    redirect: async ({ url, baseUrl }) => {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+
+      // Allows callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) return url;
+
+      return baseUrl;
+    },
     session: ({ session, user }) => ({
       ...session,
       user: {
@@ -67,17 +77,9 @@ export const authConfig = {
         role: user.role,
       },
     }),
-    redirect: async ({ url, baseUrl }) => {
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      } else if (url.startsWith(baseUrl)) {
-        return url;
-      }
-      return baseUrl;
-    },
   },
   pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
+    signIn: "/signin",
+    signOut: "/signout",
   },
 } satisfies NextAuthConfig;

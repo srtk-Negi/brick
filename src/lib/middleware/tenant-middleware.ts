@@ -1,4 +1,3 @@
-// src/lib/middleware/tenant-middleware.ts
 // Example helper: extract slug param from pathname
 export function getSlugFromPath(pathname: string) {
   // expected /{slug}/...

@@ -1,4 +1,3 @@
-// src/app/(dashboard)/[slug]/dashboard/page.tsx
 import { getTenantBySlug } from "@/lib/queries/tenants";
 
 export default async function DashboardPage({
@@ -7,7 +6,7 @@ export default async function DashboardPage({
   params: { slug: string };
 }) {
   // TODO: Replace with real tenant fetch
-  const tenant = await getTenantBySlug(params.slug).catch(() => null);
+  const tenant = await getTenantBySlug(params.slug);
   return (
     <div>
       <h1 className="text-2xl font-bold">

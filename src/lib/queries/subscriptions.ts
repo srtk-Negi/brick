@@ -1,12 +1,14 @@
-// src/lib/db/subscriptions.ts
-import { db } from "@/db";
-import { subscriptions } from "@/db/schema/subscriptions";
+import { db } from "@/server/db";
+import { subscriptionsTable } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function getSubscriptionForTenant(tenantId: string) {
-  return db
+  const subscriptionData = await db
     .select()
-    .from(subscriptions)
-    .where(subscriptions.tenantId.eq(tenantId))
+    .from(subscriptionsTable)
+    .where(eq(subscriptionsTable.tenantId, tenantId))
     .limit(1)
     .then((r) => r[0] ?? null);
+
+  return subscriptionData;
 }

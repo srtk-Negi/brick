@@ -1,7 +1,11 @@
-// src/lib/db/memberships.ts
-import { db } from "@/db";
-import { memberships } from "@/db/schema/memberships";
+import { db } from "@/server/db";
+import { membershipsTable } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function getMembershipsByUserId(userId: string) {
-  return db.select().from(memberships).where(memberships.userId.eq(userId));
+  const membershipData = await db
+    .select()
+    .from(membershipsTable)
+    .where(eq(membershipsTable.userId, userId));
+  return membershipData;
 }

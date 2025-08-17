@@ -13,7 +13,7 @@ import { DiscIcon as Discord, Github, Chrome } from "lucide-react";
 
 export default function LoginPage() {
   const performSignIn = async (provider: string) => {
-    await signIn(provider, { callbackUrl: "/dashboard" });
+    await signIn(provider, { redirectTo: "/tenants" });
   };
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
