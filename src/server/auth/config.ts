@@ -3,7 +3,6 @@ import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-import { getMembershipsByUserId } from "@/lib/queries/memberships";
 
 import { db } from "@/server/db";
 import {
@@ -59,17 +58,50 @@ export const authConfig = {
     sessionsTable: sessionsTable,
     verificationTokensTable: verificationTokensTable,
   }),
+  session: {
+    strategy: "database",
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
+  },
   callbacks: {
     redirect: async ({ url, baseUrl }) => {
+      // Handle sign out - always redirect to home
+      if (url.includes("/auth/signout") || url.includes("signout")) {
+        return baseUrl + "/";
+      }
+
+      // Parse the URL to get search params
+      const urlObj = new URL(url, baseUrl);
+      const callbackUrl = urlObj.searchParams.get("callbackUrl");
+
+      // If there's a callbackUrl in the query params, use it
+      if (callbackUrl) {
+        // Ensure it's a safe redirect (same origin)
+        try {
+          const callbackUrlObj = new URL(callbackUrl, baseUrl);
+          if (callbackUrlObj.origin === new URL(baseUrl).origin) {
+            return callbackUrl;
+          }
+        } catch (e) {
+          // Invalid URL, fall back to default
+        }
+      }
+
+      // Default sign-in redirect to tenants
+      if (url.includes("/auth/signin") || url.includes("signin")) {
+        return baseUrl + "/tenants";
+      }
+
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
 
       // Allows callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) return url;
+      if (new URL(url).origin === new URL(baseUrl).origin) return url;
 
-      return baseUrl;
+      // Default fallback
+      return baseUrl + "/tenants";
     },
-    session: ({ session, user }) => ({
+    session: async ({ session, user }) => ({
       ...session,
       user: {
         ...session.user,
@@ -79,7 +111,8 @@ export const authConfig = {
     }),
   },
   pages: {
-    signIn: "/signin",
-    signOut: "/signout",
+    signIn: "/auth/signin",
+    signOut: "/auth/signout",
+    error: "/auth/error",
   },
 } satisfies NextAuthConfig;

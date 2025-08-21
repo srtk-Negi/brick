@@ -39,9 +39,9 @@ export default function Navbar() {
         variant={"default"}
         onClick={() => {
           if (session?.user) {
-            router.push("/signout");
+            router.push("/auth/signout");
           } else {
-            router.push("/signin");
+            router.push("/auth/signin");
           }
         }}
       >

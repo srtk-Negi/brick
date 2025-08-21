@@ -11,8 +11,9 @@ import {
   Calendar,
 } from "lucide-react";
 
-export default function TenantsPage() {
-  // Mock data - replace with actual data from your API
+import Link from "next/link";
+
+export default async function TenantsPage() {
   const tenants = [
     {
       id: "1",
@@ -97,10 +98,12 @@ export default function TenantsPage() {
                 collaborations
               </p>
             </div>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Team
-            </Button>
+            <Link href={"/tenants/create"}>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create New Team
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -271,10 +274,12 @@ export default function TenantsPage() {
               Create your first team or wait for an invitation to join an
               existing one.
             </p>
-            <Button className="flex">
-              <Plus className="h-4 w-4" />
-              Create Your First Team
-            </Button>
+            <Link href={"/tenants/create"}>
+              <Button className="flex">
+                <Plus className="h-4 w-4" />
+                Create Your First Team
+              </Button>
+            </Link>
           </div>
         </section>
       )}
