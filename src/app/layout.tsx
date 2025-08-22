@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
@@ -29,6 +30,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Navbar />
             <main>{children}</main>
+            <Toaster />
           </ThemeProvider>
         </SessionProvider>
       </body>

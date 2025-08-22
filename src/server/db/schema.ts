@@ -11,13 +11,11 @@ export const createTableFunction = pgTableCreator(
 // ------------------ CONSTS ------------------
 export const APP_USER_ROLES = ["super_admin", "admin", "basic"] as const;
 export const TENANT_USER_ROLES = ["admin", "editor", "viewer"] as const;
-export const PLANS = ["free", "pro", "enterprise"] as const;
 export const PLAN_STATUS = ["active", "canceled", "trial", "past_due"] as const;
 
 // ------------------ TYPES ------------------
 export type AppUserRoles = (typeof APP_USER_ROLES)[number];
 export type TenantUserRoles = (typeof TENANT_USER_ROLES)[number];
-export type Plan = (typeof PLANS)[number];
 export type PlanStatus = (typeof PLAN_STATUS)[number];
 
 // ------------------ POSTGRES ENUMS ------------------
@@ -30,7 +28,6 @@ export const appUserRoles = pgEnum("app_user_roles", APP_USER_ROLES);
  * user's role in a tenant/workspace/org.
  */
 export const tenantUserRoles = pgEnum("tenant_user_roles", TENANT_USER_ROLES);
-export const plans = pgEnum("plans", PLANS);
 export const planStatus = pgEnum("plan_status", PLAN_STATUS);
 
 // ------------------ USERS ------------------
@@ -126,7 +123,10 @@ export const tenantsTable = createTableFunction("tenants", (d) => ({
   id: d.uuid().primaryKey().defaultRandom(),
   name: d.varchar({ length: 255 }).notNull(),
   slug: d.varchar({ length: 255 }).unique(),
-  plan: plans().notNull().default("free"),
+  planId: d
+    .uuid()
+    .references(() => plansTable.id)
+    .notNull(),
   createdAt: d
     .timestamp({ mode: "date", withTimezone: true })
     .notNull()
@@ -171,6 +171,15 @@ export const subscriptionsTable = createTableFunction("subscriptions", (d) => ({
   createdAt: d.timestamp().defaultNow(),
 }));
 
+export const plansTable = createTableFunction("plans", (d) => ({
+  id: d.uuid().primaryKey().defaultRandom(),
+  name: d.varchar({ length: 25 }).unique().notNull(),
+  description: d.text(),
+  rate: d.real().notNull(),
+  period: d.varchar({ length: 25 }).default("per month"),
+  features: d.text().array().notNull(),
+}));
+
 // ------------------ AUDIT ------------------
 export const auditLogsTable = createTableFunction("audit_logs", (d) => ({
   id: d.uuid().primaryKey().defaultRandom(),
@@ -203,11 +212,15 @@ export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
   }),
 }));
 
-export const tenantsRelations = relations(tenantsTable, ({ many }) => ({
+export const tenantsRelations = relations(tenantsTable, ({ many, one }) => ({
   memberships: many(membershipsTable),
   subscriptions: many(subscriptionsTable),
   auditLogs: many(auditLogsTable),
   invitations: many(invitationsTable),
+  plan: one(plansTable, {
+    fields: [tenantsTable.planId],
+    references: [plansTable.id],
+  }),
 }));
 
 export const membershipsRelations = relations(membershipsTable, ({ one }) => ({
@@ -220,6 +233,7 @@ export const membershipsRelations = relations(membershipsTable, ({ one }) => ({
     references: [tenantsTable.id],
   }),
 }));
+
 export const subscriptionsRelations = relations(
   subscriptionsTable,
   ({ one }) => ({
@@ -246,4 +260,8 @@ export const auditLogsRelations = relations(auditLogsTable, ({ one }) => ({
     fields: [auditLogsTable.userId],
     references: [usersTable.id],
   }),
+}));
+
+export const plansRelations = relations(plansTable, ({ many }) => ({
+  tenants: many(tenantsTable),
 }));

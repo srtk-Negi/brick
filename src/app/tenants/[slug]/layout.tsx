@@ -4,26 +4,26 @@ import { Badge } from "@/components/ui/badge";
 import { LayoutDashboard, Shield, Settings, Users, Bell } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { db } from "@/server/db";
+import { membershipsTable, plansTable, tenantsTable } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 // Mock function to get tenant data - replace with your actual data fetching
 async function getTenant(slug: string) {
   // This would typically fetch from your database
-  const mockTenants = {
-    "acme-corp": {
-      name: "Acme Corp",
-      plan: "Pro",
-      role: "Admin",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    "tech-startup": {
-      name: "Tech Startup",
-      plan: "Enterprise",
-      role: "Owner",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-  };
+  const tenant = await db
+    .select({
+      id: tenantsTable.id,
+      name: tenantsTable.name,
+      plan: plansTable.name,
+      role: membershipsTable.role,
+    })
+    .from(tenantsTable)
+    .innerJoin(plansTable, eq(plansTable.id, tenantsTable.planId))
+    .innerJoin(membershipsTable, eq(membershipsTable.tenantId, tenantsTable.id))
+    .where(eq(tenantsTable.slug, slug));
 
-  return mockTenants[slug as keyof typeof mockTenants] || null;
+  return tenant[0];
 }
 
 export default async function TenantLayout({
@@ -67,11 +67,11 @@ export default async function TenantLayout({
             {/* Tenant Info */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <img
-                  src={tenant.avatar || "/placeholder.svg"}
+                {/* <img
+                  // src={tenant.avatar || "/placeholder.svg"}
                   alt={tenant.name}
                   className="h-8 w-8 rounded-lg"
-                />
+                /> */}
                 <div>
                   <h1 className="text-foreground font-semibold">
                     {tenant.name}

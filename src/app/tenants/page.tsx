@@ -10,52 +10,18 @@ import {
   Crown,
   Calendar,
 } from "lucide-react";
-
+import { getTenants } from "@/lib/queries/tenants";
 import Link from "next/link";
+import { auth } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 export default async function TenantsPage() {
-  const tenants = [
-    {
-      id: "1",
-      name: "Acme Corporation",
-      role: "Owner",
-      members: 12,
-      plan: "Enterprise",
-      status: "active",
-      lastActivity: "2 hours ago",
-      avatar: "AC",
-    },
-    {
-      id: "2",
-      name: "TechStart Inc",
-      role: "Admin",
-      members: 5,
-      plan: "Pro",
-      status: "active",
-      lastActivity: "1 day ago",
-      avatar: "TS",
-    },
-    {
-      id: "3",
-      name: "Design Studio",
-      role: "Member",
-      members: 8,
-      plan: "Starter",
-      status: "active",
-      lastActivity: "3 days ago",
-      avatar: "DS",
-    },
-    {
-      id: "4",
-      name: "Marketing Agency",
-      role: "Admin",
-      members: 15,
-      plan: "Pro",
-      status: "inactive",
-      lastActivity: "1 week ago",
-      avatar: "MA",
-    },
-  ];
+  const session = await auth();
+  if (!session) {
+    redirect("/auth/signin");
+  }
+  const userId = session.user.id;
+  const tenants = await getTenants(userId);
 
   const getPlanColor = (plan: string) => {
     switch (plan) {
@@ -136,7 +102,7 @@ export default async function TenantsPage() {
                   </div>
                   <div>
                     <p className="text-foreground text-2xl font-bold">
-                      {tenants.filter((t) => t.role === "Owner").length}
+                      {tenants.filter((t) => t.role === "admin").length}
                     </p>
                     <p className="text-muted-foreground text-sm">Teams Owned</p>
                   </div>
@@ -177,11 +143,6 @@ export default async function TenantsPage() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-lg">
-                        <span className="text-primary text-sm font-semibold">
-                          {tenant.avatar}
-                        </span>
-                      </div>
                       <div>
                         <CardTitle className="text-lg">{tenant.name}</CardTitle>
                         <div className="mt-1 flex items-center gap-2">
@@ -216,7 +177,7 @@ export default async function TenantsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm">
+                    {/* <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Status</span>
                       <div className="flex items-center gap-2">
                         <div
@@ -230,9 +191,9 @@ export default async function TenantsPage() {
                           {tenant.status}
                         </span>
                       </div>
-                    </div>
+                    </div> */}
 
-                    <div className="flex items-center justify-between text-sm">
+                    {/* <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
                         Last Activity
                       </span>
@@ -242,13 +203,15 @@ export default async function TenantsPage() {
                           {tenant.lastActivity}
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="mt-6 flex gap-2">
-                    <Button className="flex-1" size="sm">
-                      Switch To
-                    </Button>
+                    <Link href={`/tenants/${tenant.slug}`}>
+                      <Button className="flex-1" size="sm">
+                        Switch To
+                      </Button>
+                    </Link>
                     <Button variant="outline" size="sm">
                       <Settings className="h-4 w-4" />
                     </Button>

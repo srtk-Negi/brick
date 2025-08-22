@@ -37,7 +37,7 @@ export default function HomePage() {
             development and focus on what makes your product unique.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href={"/signin"}>
+            <Link href={"/auth/signin"}>
               <Button size="lg" className="px-8 py-3 text-lg">
                 Get Started
               </Button>
@@ -292,7 +292,7 @@ export default function HomePage() {
             Stop building the same features over and over. Start with our
             battle-tested boilerplate.
           </p>
-          <Link href={"/signin"}>
+          <Link href={"/auth/signin"}>
             <Button size="lg" className="px-8 py-3 text-lg">
               Get Started Today
             </Button>
