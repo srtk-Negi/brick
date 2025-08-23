@@ -7,7 +7,8 @@ export const tenantSchema = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9-]+$/)
-    .max(255),
+    .max(255)
+    .optional(),
   planId: z.string().uuid(),
 });
 

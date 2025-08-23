@@ -11,7 +11,7 @@ export const getPlansAction = async () => {
   try {
     const plans = await db.select().from(plansTable).orderBy(plansTable.rate);
     return plans;
-  } catch (error: any) {
+  } catch {
     throw new Error("Could not get plans!");
   }
 };
@@ -20,7 +20,6 @@ export const createTenantAction = async (formData: FormData) => {
   const data = Object.fromEntries(formData.entries());
 
   const result = tenantSchema.omit({ id: true }).safeParse(data);
-  console.log(result.error);
 
   if (!result.success) {
     return {
@@ -43,7 +42,7 @@ export const createTenantAction = async (formData: FormData) => {
     await insertMembership({
       userId: userId,
       tenantId: tenantId,
-      role: "admin",
+      role: "owner",
       invitedAt: now,
       acceptedAt: now,
     });

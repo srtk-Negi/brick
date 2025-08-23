@@ -10,7 +10,12 @@ export const createTableFunction = pgTableCreator(
 
 // ------------------ CONSTS ------------------
 export const APP_USER_ROLES = ["super_admin", "admin", "basic"] as const;
-export const TENANT_USER_ROLES = ["admin", "editor", "viewer"] as const;
+export const TENANT_USER_ROLES = [
+  "owner",
+  "admin",
+  "editor",
+  "viewer",
+] as const;
 export const PLAN_STATUS = ["active", "canceled", "trial", "past_due"] as const;
 
 // ------------------ TYPES ------------------

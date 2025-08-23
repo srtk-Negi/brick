@@ -4,6 +4,7 @@ import { tenantsTable, membershipsTable, plansTable } from "@/server/db/schema";
 import { db } from "@/server/db";
 import { eq, sql } from "drizzle-orm";
 import type { Tenant } from "@/lib/validators/validationSchemas";
+import { generateUniqueSlug } from "../utils";
 
 /**
  * Gets all the teams the user is a member of.
@@ -29,12 +30,13 @@ export async function getTenants(userId: string) {
 }
 
 export async function insertTenant(tenant: Tenant) {
+  const slug = await generateUniqueSlug(tenant.name);
   try {
     const response = await db
       .insert(tenantsTable)
       .values({
         name: tenant.name,
-        slug: tenant.slug,
+        slug: slug,
         planId: tenant.planId,
       })
       .returning();
@@ -46,7 +48,7 @@ export async function insertTenant(tenant: Tenant) {
       success: true,
       data: response[0],
     };
-  } catch (error: any) {
+  } catch {
     return {
       success: false,
       error: "Could not create tenant",
@@ -69,7 +71,7 @@ export async function getTenantBySlug(slug: string) {
     }
 
     return tenant[0];
-  } catch (error: any) {
+  } catch {
     throw new Error("Unable to fetch tenant at this time. Please try again.");
   }
 }

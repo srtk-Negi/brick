@@ -16,14 +16,17 @@ export default function CreateTeamPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan>();
   const [teamName, setTeamName] = useState("");
-  const [teamSlug, setTeamSlug] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const runAction = async () => {
-      const result = await getPlansAction();
-      setPlans(result);
+      try {
+        const result = await getPlansAction();
+        setPlans(result);
+      } catch {
+        console.log("error");
+      }
     };
     runAction();
   }, []);
@@ -102,17 +105,6 @@ export default function CreateTeamPage() {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="teamName">Team Slug *</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  placeholder="Enter your team Slug"
-                  value={teamSlug}
-                  onChange={(e) => setTeamSlug(e.target.value)}
-                  required
-                />
-              </div>
             </CardContent>
           </Card>
 
@@ -121,7 +113,7 @@ export default function CreateTeamPage() {
             <CardHeader>
               <CardTitle>Choose Your Plan</CardTitle>
               <p className="text-muted-foreground text-sm">
-                Select the plan that best fits your team's needs. You can
+                Select the plan that best fits your team&apos;s needs. You can
                 upgrade or downgrade anytime.
               </p>
             </CardHeader>
