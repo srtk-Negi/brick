@@ -8,7 +8,6 @@ import {
   MoreVertical,
   Plus,
   Crown,
-  Calendar,
 } from "lucide-react";
 import { getTenants } from "@/lib/queries/tenants";
 import Link from "next/link";
@@ -38,11 +37,11 @@ export default async function TenantsPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "Owner":
+      case "owner":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "Admin":
+      case "admin":
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "Member":
+      case "editor":
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
@@ -102,7 +101,7 @@ export default async function TenantsPage() {
                   </div>
                   <div>
                     <p className="text-foreground text-2xl font-bold">
-                      {tenants.filter((t) => t.role === "admin").length}
+                      {tenants.filter((t) => t.role === "owner").length}
                     </p>
                     <p className="text-muted-foreground text-sm">Teams Owned</p>
                   </div>
@@ -121,7 +120,7 @@ export default async function TenantsPage() {
                       {tenants.reduce((sum, t) => sum + t.members, 0)}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                      Total Members
+                      Total Members Across Teams
                     </p>
                   </div>
                 </div>
@@ -176,34 +175,6 @@ export default async function TenantsPage() {
                         <span className="font-medium">{tenant.members}</span>
                       </div>
                     </div>
-
-                    {/* <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Status</span>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-2 w-2 rounded-full ${
-                            tenant.status === "active"
-                              ? "bg-green-500"
-                              : "bg-gray-400"
-                          }`}
-                        />
-                        <span className="font-medium capitalize">
-                          {tenant.status}
-                        </span>
-                      </div>
-                    </div> */}
-
-                    {/* <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Last Activity
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="text-muted-foreground h-4 w-4" />
-                        <span className="font-medium">
-                          {tenant.lastActivity}
-                        </span>
-                      </div>
-                    </div> */}
                   </div>
 
                   <div className="mt-6 flex gap-2">
@@ -212,9 +183,11 @@ export default async function TenantsPage() {
                         Switch To
                       </Button>
                     </Link>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                    <Link href={`/tenants/${tenant.slug}/settings`}>
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

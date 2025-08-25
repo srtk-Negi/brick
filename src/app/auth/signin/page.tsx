@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Github, Chrome } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export default async function SignIn({
   searchParams,
@@ -21,6 +25,22 @@ export default async function SignIn({
 
   if (session) {
     redirect(params.callbackUrl || "/tenants");
+  }
+
+  async function handleCredentialsSignIn(formData: FormData) {
+    "use server";
+    const data = Object.fromEntries(formData.entries());
+    try {
+      await signIn("credentials", {
+        ...data,
+      });
+      redirect("/tenants");
+    } catch (error) {
+      if (error instanceof AuthError) {
+        redirect(`/auth/signin?error=${error.type}`);
+      }
+      throw error;
+    }
   }
 
   async function handleGoogleSignIn() {
@@ -83,6 +103,30 @@ export default async function SignIn({
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
+            <form action={handleCredentialsSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Sign In
+              </Button>
+            </form>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="px-2">Or continue with</span>
+              </div>
+            </div>
+
             <form action={handleGoogleSignIn}>
               <Button
                 variant="outline"
@@ -103,6 +147,15 @@ export default async function SignIn({
                 Sign in with GitHub
               </Button>
             </form>
+            <div className="text-center text-sm">
+              {"Don't have an account? "}
+              <Link
+                href="/auth/signup"
+                className="hover:text-primary underline underline-offset-4"
+              >
+                Sign up
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

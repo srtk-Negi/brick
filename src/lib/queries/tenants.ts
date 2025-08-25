@@ -4,7 +4,7 @@ import { tenantsTable, membershipsTable, plansTable } from "@/server/db/schema";
 import { db } from "@/server/db";
 import { eq, sql } from "drizzle-orm";
 import type { Tenant } from "@/lib/validators/validationSchemas";
-import { generateUniqueSlug } from "../utils";
+import { generateUniqueSlug } from "@/lib/serverUtils";
 
 /**
  * Gets all the teams the user is a member of.
@@ -19,7 +19,7 @@ export async function getTenants(userId: string) {
       createdAt: tenantsTable.createdAt,
       role: membershipsTable.role,
       plan: plansTable.name,
-      members: sql<number>`(SELECT COUNT(*) FROM ${membershipsTable} WHERE ${membershipsTable.tenantId} = ${tenantsTable.id})`,
+      members: sql<number>`(SELECT CAST(COUNT(*) AS INTEGER) FROM ${membershipsTable} WHERE ${membershipsTable.tenantId} = ${tenantsTable.id})`,
     })
     .from(tenantsTable)
     .innerJoin(membershipsTable, eq(membershipsTable.tenantId, tenantsTable.id))

@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/server/db";
-import { plansTable } from "@/server/db/schema";
+import { plansTable, usersTable } from "@/server/db/schema";
 import { tenantSchema } from "@/lib/validators/validationSchemas";
 import { auth } from "@/server/auth";
 import { insertTenant } from "@/lib/queries/tenants";
 import { insertMembership } from "@/lib/queries/memberships";
+import { eq } from "drizzle-orm";
 
 export const getPlansAction = async () => {
   try {
@@ -46,5 +47,26 @@ export const createTenantAction = async (formData: FormData) => {
       invitedAt: now,
       acceptedAt: now,
     });
+  }
+};
+
+export const handleCredentialsSignUp = async (formData: FormData) => {
+  "use server";
+  const data = Object.fromEntries(formData.entries());
+  try {
+    const existingUser = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, data.email as string));
+
+    if (existingUser[0]) {
+      throw new Error("Email already exists!");
+    }
+
+    await db
+      .insert(usersTable)
+      .values({ email: data.email as string, name: data.name as string });
+  } catch {
+    throw new Error("Could not create user!");
   }
 };
