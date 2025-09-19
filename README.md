@@ -1,4 +1,4 @@
-## 🚀 SaaS Boilerplate – T3 Stack + Drizzle + Auth.js (Clerk Optional)
+## 🚀 SaaS Boilerplate – T3 Stack + Drizzle + Auth.js
 
 A **production-ready SaaS starter kit** that handles authentication, billing, multi-tenancy, RBAC, and team collaboration — so you can focus on building your product, not boilerplate.
 
@@ -7,7 +7,7 @@ A **production-ready SaaS starter kit** that handles authentication, billing, mu
 ### ✨ Features
 
 - **Next.js 14 + App Router** – Modern, scalable React framework.
-- **Auth.js (default)** + optional **Clerk** – Flexible authentication strategy.
+- **Auth.js** – Flexible authentication strategy.
 - **Drizzle ORM** – Type-safe, lightweight, and SQL-first.
 - **PostgreSQL** – Reliable relational database.
 - **Stripe Integration** – Subscription & metered billing.
@@ -17,37 +17,9 @@ A **production-ready SaaS starter kit** that handles authentication, billing, mu
 - **Email Automation** – Welcome emails, team invites.
 - **Admin Dashboard** – Manage tenants, users, and subscriptions.
 - **API Routes** – For auth, billing, and tenant management.
-- **Infrastructure Ready** – Works with AWS Lambda, Vercel, or Cloudflare Workers.
 
 ---
 
-### 📂 Project Structure
-
-```
-src/
-  app/                  # App Router pages
-    (marketing)/        # Public marketing pages
-    (auth)/             # Auth-related pages
-    (dashboard)/        # Tenant dashboards
-    api/                # API routes
-  db/
-    schema/             # Drizzle table schemas
-    migrations/         # DB migrations
-  lib/
-    auth/               # Auth logic (Auth.js / Clerk)
-    db/                 # DB helper functions
-    rbac/               # Role & permission logic
-    stripe/             # Stripe integration
-    email/              # Email templates & senders
-    utils/              # Shared utilities
-    middleware/         # API/middleware guards
-  components/
-    ui/                 # Reusable UI components
-    layout/             # Page layouts
-    forms/              # Form components
-    dashboard/          # Dashboard-specific UI
-  styles/               # Tailwind & theme styles
-```
 
 ---
 
@@ -111,7 +83,7 @@ If you’re launching a SaaS:
 
 - [Next.js](https://nextjs.org/)
 - [Drizzle ORM](https://orm.drizzle.team/)
-- [Auth.js](https://authjs.dev/) / [Clerk](https://clerk.dev/)
+- [Auth.js](https://authjs.dev/)
 - [Stripe](https://stripe.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
 
@@ -122,7 +94,3 @@ If you’re launching a SaaS:
 MIT — free to use in personal and commercial projects.
 
 ---
-
-If you want, I can **also add a visual diagram of the SaaS architecture** to the README so potential users immediately get how everything fits together. That makes repos look 10× more professional.
-
-Do you want me to include that?
