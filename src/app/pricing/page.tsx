@@ -7,8 +7,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, X, Zap, Users, Building2 } from "lucide-react";
-import { getPlansAction } from "@/server/actions/actions";
+import { CheckCircle, Zap } from "lucide-react";
+import { db } from "@/server/db";
+import { plansTable } from "@/server/db/schema";
 import Link from "next/link";
 
 type Plan = {
@@ -93,7 +94,7 @@ const PlanCard = ({ plan }: { plan: Plan }) => {
 };
 
 export default async function PricingPage() {
-  const plans = await getPlansAction();
+  const plans = await db.select().from(plansTable).orderBy(plansTable.rate);
 
   return (
     <div className="bg-background min-h-screen">

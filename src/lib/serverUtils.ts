@@ -1,17 +1,19 @@
 import "server-only";
+
 import { db } from "@/server/db";
 import { tenantsTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { auth } from "@/server/auth";
 
-function slugify(text: string): string {
+const slugify = (text: string): string => {
   return text
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
+};
 
-export async function generateUniqueSlug(name: string): Promise<string> {
+export const generateUniqueSlug = async (name: string): Promise<string> => {
   const baseSlug = slugify(name);
   let slug = baseSlug;
   let counter = 1;
@@ -28,4 +30,18 @@ export async function generateUniqueSlug(name: string): Promise<string> {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
-}
+};
+
+/**
+ * Returns the current user in server components, raises an error if not authenticated.
+ * This is a strict server only function and should not be called from client.
+ *
+ * @returns current user object
+ */
+export const getCurrentUser = async () => {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not Authenticated");
+  }
+  return session.user;
+};

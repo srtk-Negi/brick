@@ -51,7 +51,6 @@ export const createTenantAction = async (formData: FormData) => {
 };
 
 export const handleCredentialsSignUp = async (formData: FormData) => {
-  "use server";
   const data = Object.fromEntries(formData.entries());
   try {
     const existingUser = await db
